@@ -35,7 +35,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--output",
         type=Path,
         default=_DEFAULT_OUTPUT_DIR,
-        help=f"Output directory (default: {_DEFAULT_OUTPUT_DIR})",
+        help=(
+            f"Output directory or file path (default: {_DEFAULT_OUTPUT_DIR}). "
+            "If the path ends with .md, it is treated as a file path."
+        ),
     )
     return parser.parse_args(argv)
 
@@ -140,13 +143,24 @@ def _run(argv: list[str] | None = None) -> int:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
-    filename = _build_filename(result.title)
-
-    try:
-        saved = save_markdown(result.markdown, args.output, filename)
-    except OSError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 1
+    output_path: Path = args.output
+    if output_path.suffix == ".md":
+        # Treat as a full file path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            output_path.write_text(result.markdown, encoding="utf-8")
+        except OSError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return 1
+        saved = output_path
+    else:
+        # Treat as a directory
+        filename = _build_filename(result.title)
+        try:
+            saved = save_markdown(result.markdown, output_path, filename)
+        except OSError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return 1
 
     print(saved)
     return 0

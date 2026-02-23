@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gh-md-fetch"
+version = "0.1.0"
+description = "gh extension: Fetch web articles and convert to Markdown"
+requires-python = ">=3.9"
+dependencies = [
+    "playwright>=1.40.0",
+    "markdownify>=1.1.0",
+]
+
+[project.scripts]
+md-fetch = "md_fetch.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["md_fetch"]

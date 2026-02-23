@@ -19,7 +19,10 @@ class TestNoteSiteConfigProperties:
         assert _CFG.name == "note"
 
     def test_host_patterns(self) -> None:
-        assert _CFG.host_patterns == ["note.com", "*.note.com"]
+        assert _CFG.host_patterns == ["note.com", "*.note.com", "note.mu", "*.note.mu"]
+
+    def test_wait_until(self) -> None:
+        assert _CFG.wait_until == "networkidle"
 
     def test_content_selector(self) -> None:
         assert _CFG.content_selector == ".note-common-styles__textnote-body"
@@ -138,6 +141,16 @@ class TestDefaultRegistry:
     def test_note_subdomain_matches(self) -> None:
         registry = create_default_registry()
         config = registry.find("https://www.note.com/article")
+        assert config.name == "note"
+
+    def test_note_mu_matches(self) -> None:
+        registry = create_default_registry()
+        config = registry.find("https://note.mu/user/n/abc123")
+        assert config.name == "note"
+
+    def test_note_mu_subdomain_matches(self) -> None:
+        registry = create_default_registry()
+        config = registry.find("https://www.note.mu/article")
         assert config.name == "note"
 
     def test_unknown_site_raises(self) -> None:

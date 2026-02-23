@@ -35,6 +35,9 @@ class TestQiitaSiteConfigProperties:
             ".it-Reactions",
         ]
 
+    def test_wait_until(self) -> None:
+        assert _CFG.wait_until == "load"
+
 
 class TestQiitaSiteConversion:
     """Integration tests: qiita.com HTML -> Markdown conversion."""

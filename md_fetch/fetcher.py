@@ -59,9 +59,9 @@ def _is_proxy_available() -> bool:
         return False
 
 
-def _fetch_via_proxy(url: str, *, timeout_ms: int) -> str:
+def _fetch_via_proxy(url: str, *, timeout_ms: int, wait_until: str = "networkidle") -> str:
     """Fetch a URL via the playwright-http-server proxy."""
-    payload = json.dumps({"url": url, "timeout_ms": timeout_ms}).encode()
+    payload = json.dumps({"url": url, "timeout_ms": timeout_ms, "wait_until": wait_until}).encode()
     req = urllib.request.Request(
         _PROXY_URL,
         data=payload,
@@ -82,16 +82,14 @@ def _fetch_via_proxy(url: str, *, timeout_ms: int) -> str:
     return data["html"]
 
 
-def _fetch_via_playwright(url: str, *, timeout_ms: int) -> str:
+def _fetch_via_playwright(url: str, *, timeout_ms: int, wait_until: str = "networkidle") -> str:
     """Fetch a URL directly using Playwright."""
     try:
         with sync_playwright() as pw:
             browser = pw.chromium.launch(headless=True)
             try:
                 page = browser.new_page()
-                # networkidle waits for no network connections for 500ms,
-                # which is the best heuristic for JS-rendered article pages.
-                page.goto(url, wait_until="networkidle", timeout=timeout_ms)
+                page.goto(url, wait_until=wait_until, timeout=timeout_ms)
                 return page.content()
             except PlaywrightError as exc:
                 raise _convert_playwright_error(exc) from exc
@@ -102,7 +100,12 @@ def _fetch_via_playwright(url: str, *, timeout_ms: int) -> str:
         raise _convert_playwright_error(exc) from exc
 
 
-def fetch_page(url: str, *, timeout_ms: int = _DEFAULT_TIMEOUT_MS) -> str:
+def fetch_page(
+    url: str,
+    *,
+    timeout_ms: int = _DEFAULT_TIMEOUT_MS,
+    wait_until: str = "networkidle",
+) -> str:
     """Fetch a URL and return the fully-rendered HTML.
 
     Tries the playwright-http-server proxy first. If the proxy is not
@@ -111,6 +114,7 @@ def fetch_page(url: str, *, timeout_ms: int = _DEFAULT_TIMEOUT_MS) -> str:
     Args:
         url: The URL to fetch.
         timeout_ms: Navigation timeout in milliseconds.
+        wait_until: Playwright wait strategy (e.g. "networkidle", "load").
 
     Returns:
         The rendered HTML as a string.
@@ -121,5 +125,5 @@ def fetch_page(url: str, *, timeout_ms: int = _DEFAULT_TIMEOUT_MS) -> str:
         FetchError: Any other Playwright error.
     """
     if _is_proxy_available():
-        return _fetch_via_proxy(url, timeout_ms=timeout_ms)
-    return _fetch_via_playwright(url, timeout_ms=timeout_ms)
+        return _fetch_via_proxy(url, timeout_ms=timeout_ms, wait_until=wait_until)
+    return _fetch_via_playwright(url, timeout_ms=timeout_ms, wait_until=wait_until)

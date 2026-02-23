@@ -27,3 +27,8 @@ class SiteConfig(ABC):
     @property
     @abstractmethod
     def remove_selectors(self) -> list[str]: ...
+
+    @property
+    def wait_until(self) -> str:
+        """Playwright wait strategy. Override per site if needed."""
+        return "networkidle"

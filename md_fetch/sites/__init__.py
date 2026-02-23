@@ -53,6 +53,17 @@ class SiteRegistry:
             f"No site configuration found for host {host!r}"
         )
 
+    def find_or_none(self, url: str) -> SiteConfig | None:
+        """Find the matching SiteConfig, or return None on any failure."""
+        try:
+            return self.find(url)
+        except (ValueError, UnsupportedSiteError):
+            return None
+
+    def is_supported(self, url: str) -> bool:
+        """Return True if *url* matches any registered site."""
+        return self.find_or_none(url) is not None
+
 
 def create_default_registry() -> SiteRegistry:
     """Create a SiteRegistry pre-loaded with all built-in site configurations."""

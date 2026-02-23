@@ -121,3 +121,45 @@ class TestSiteRegistryBoundary:
     def test_abc_cannot_be_instantiated(self) -> None:
         with pytest.raises(TypeError):
             SiteConfig()  # type: ignore[abstract]
+
+
+class TestWaitUntilDefault:
+    """Default wait_until property."""
+
+    def test_default_is_networkidle(self) -> None:
+        config = _DummySiteConfig()
+        assert config.wait_until == "networkidle"
+
+
+class TestFindOrNone:
+    """SiteRegistry.find_or_none behaviour."""
+
+    def test_returns_config_for_known_host(self, registry: SiteRegistry) -> None:
+        config = registry.find_or_none("https://note.com/article")
+        assert config is not None
+        assert config.name == "dummy"
+
+    def test_returns_none_for_unknown_host(self, registry: SiteRegistry) -> None:
+        assert registry.find_or_none("https://example.com/page") is None
+
+    def test_returns_none_for_empty_url(self, registry: SiteRegistry) -> None:
+        assert registry.find_or_none("") is None
+
+    def test_returns_none_for_invalid_url(self, registry: SiteRegistry) -> None:
+        assert registry.find_or_none("not-a-url") is None
+
+
+class TestIsSupported:
+    """SiteRegistry.is_supported behaviour."""
+
+    def test_true_for_known_host(self, registry: SiteRegistry) -> None:
+        assert registry.is_supported("https://note.com/article") is True
+
+    def test_false_for_unknown_host(self, registry: SiteRegistry) -> None:
+        assert registry.is_supported("https://example.com/page") is False
+
+    def test_false_for_empty_url(self, registry: SiteRegistry) -> None:
+        assert registry.is_supported("") is False
+
+    def test_false_for_invalid_url(self, registry: SiteRegistry) -> None:
+        assert registry.is_supported("not-a-url") is False

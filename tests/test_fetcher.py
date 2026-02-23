@@ -189,7 +189,7 @@ class TestFetchPageFallback:
 
         assert result == "<html>proxy</html>"
         mock_proxy.assert_called_once_with(
-            "https://example.com", timeout_ms=30_000,
+            "https://example.com", timeout_ms=30_000, wait_until="networkidle",
         )
 
     @patch("md_fetch.fetcher._fetch_via_playwright")
@@ -203,7 +203,7 @@ class TestFetchPageFallback:
 
         assert result == "<html>direct</html>"
         mock_pw.assert_called_once_with(
-            "https://example.com", timeout_ms=30_000,
+            "https://example.com", timeout_ms=30_000, wait_until="networkidle",
         )
 
     @patch("md_fetch.fetcher._fetch_via_playwright")
@@ -228,5 +228,16 @@ class TestFetchPageFallback:
         fetch_page("https://example.com", timeout_ms=5_000)
 
         mock_proxy.assert_called_once_with(
-            "https://example.com", timeout_ms=5_000,
+            "https://example.com", timeout_ms=5_000, wait_until="networkidle",
+        )
+
+    @patch("md_fetch.fetcher._fetch_via_proxy")
+    @patch("md_fetch.fetcher._is_proxy_available", return_value=True)
+    def test_passes_custom_wait_until(self, mock_avail, mock_proxy):
+        mock_proxy.return_value = "<html>ok</html>"
+
+        fetch_page("https://example.com", wait_until="load")
+
+        mock_proxy.assert_called_once_with(
+            "https://example.com", timeout_ms=30_000, wait_until="load",
         )

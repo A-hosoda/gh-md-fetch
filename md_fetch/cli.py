@@ -132,7 +132,7 @@ def _run(argv: list[str] | None = None) -> int:
         return 1
 
     try:
-        html = fetch_page(args.url)
+        html = fetch_page(args.url, wait_until=site_config.wait_until)
     except FetchError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1

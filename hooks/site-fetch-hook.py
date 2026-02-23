@@ -16,18 +16,12 @@ import sys
 import tempfile
 import urllib.request
 from pathlib import Path
-from urllib.parse import urlparse
+
+from md_fetch.sites import create_default_registry
 
 PROXY_URL = "http://127.0.0.1:19877"
-SUPPORTED_HOSTS = {"note.com", "note.mu", "qiita.com"}
 
-# Sites that need faster wait strategy (networkidle times out)
-LOAD_WAIT_HOSTS = {"qiita.com"}
-
-
-def is_supported_url(url: str) -> bool:
-    host = urlparse(url).hostname or ""
-    return any(host == h or host.endswith(f".{h}") for h in SUPPORTED_HOSTS)
+_registry = create_default_registry()
 
 
 def is_proxy_available() -> bool:
@@ -40,18 +34,10 @@ def is_proxy_available() -> bool:
         return False
 
 
-def _wait_until_for(url: str) -> str:
-    """Choose Playwright wait strategy based on host."""
-    host = urlparse(url).hostname or ""
-    if any(host == h or host.endswith(f".{h}") for h in LOAD_WAIT_HOSTS):
-        return "load"
-    return "networkidle"
-
-
 def fetch_html(url: str, timeout_ms: int = 30_000) -> str:
     """Fetch rendered HTML from playwright proxy."""
-    wait_until = _wait_until_for(url)
-    payload = json.dumps({"url": url, "timeout_ms": timeout_ms, "wait_until": wait_until}).encode()
+    site = _registry.find(url)
+    payload = json.dumps({"url": url, "timeout_ms": timeout_ms, "wait_until": site.wait_until}).encode()
     req = urllib.request.Request(
         PROXY_URL,
         data=payload,
@@ -72,10 +58,8 @@ def convert_to_md(html: str, url: str) -> tuple[str, str, str]:
     Returns (markdown_with_title, title, site_name).
     """
     from md_fetch.converter import convert_to_markdown
-    from md_fetch.sites import create_default_registry
 
-    registry = create_default_registry()
-    site = registry.find(url)
+    site = _registry.find(url)
     result = convert_to_markdown(html, site)
     title = result.title or ""
     md = f"# {title}\n\n{result.markdown}" if title else result.markdown
@@ -104,7 +88,7 @@ def main():
         sys.exit(0)
 
     url = data.get("tool_input", {}).get("url", "")
-    if not is_supported_url(url):
+    if not _registry.is_supported(url):
         sys.exit(0)
 
     if not is_proxy_available():

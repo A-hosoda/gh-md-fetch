@@ -14,7 +14,7 @@ class NoteSiteConfig(SiteConfig):
 
     @property
     def host_patterns(self) -> list[str]:
-        return ["note.com", "*.note.com"]
+        return ["note.com", "*.note.com", "note.mu", "*.note.mu"]
 
     @property
     def content_selector(self) -> str:

@@ -31,3 +31,7 @@ class QiitaSiteConfig(SiteConfig):
             ".it-Footer",
             ".it-Reactions",
         ]
+
+    @property
+    def wait_until(self) -> str:
+        return "load"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import threading
 import time
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
@@ -60,7 +60,8 @@ class _Handler(BaseHTTPRequestHandler):
 @pytest.fixture(scope="session")
 def local_server():
     """Start a local HTTP server and yield its base URL."""
-    server = HTTPServer(("127.0.0.1", 0), _Handler)
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
+    server.daemon_threads = True
     port = server.server_address[1]
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

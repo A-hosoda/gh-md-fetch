@@ -36,6 +36,7 @@ gh md-fetch https://note.com/user/n/xxxxxxxxxx -o ./output
 | Site | Host pattern |
 |------|-------------|
 | note | `note.com`, `*.note.com` |
+| Qiita | `qiita.com`, `*.qiita.com` |
 
 ## Claude Code integration
 
@@ -76,7 +77,8 @@ verbose モード:
 
 #### 2. Configure Claude Code hook (optional)
 
-Claude Code が `WebFetch` で note.com URL にアクセスした際、自動的にプロキシ経由で取得するための hook。
+Claude Code が `WebFetch` で note.com / qiita.com URL にアクセスした際、自動的にプロキシ経由で取得するための hook。
+記事は temp ファイルに保存され、`additionalContext` でファイルパスが Claude に通知される。
 
 `.claude/settings.local.json` に追加:
 
@@ -89,7 +91,7 @@ Claude Code が `WebFetch` で note.com URL にアクセスした際、自動的
         "hooks": [
           {
             "type": "command",
-            "command": ".venv/bin/python hooks/note-fetch-hook.py",
+            "command": ".venv/bin/python hooks/site-fetch-hook.py",
             "timeout": 60
           }
         ]
@@ -105,7 +107,7 @@ Claude Code が `WebFetch` で note.com URL にアクセスした際、自動的
 
 ```bash
 ln -s /path/to/gh-md-fetch/hooks/playwright-http-server.py ~/.claude/hooks/
-ln -s /path/to/gh-md-fetch/hooks/note-fetch-hook.py ~/.claude/hooks/
+ln -s /path/to/gh-md-fetch/hooks/site-fetch-hook.py ~/.claude/hooks/
 ```
 
 `~/.claude/settings.json` の hooks に追加:
@@ -116,7 +118,7 @@ ln -s /path/to/gh-md-fetch/hooks/note-fetch-hook.py ~/.claude/hooks/
   "hooks": [
     {
       "type": "command",
-      "command": ".venv/bin/python ~/.claude/hooks/note-fetch-hook.py",
+      "command": "/path/to/gh-md-fetch/.venv/bin/python ~/.claude/hooks/site-fetch-hook.py",
       "timeout": 60
     }
   ]
@@ -159,10 +161,11 @@ gh-md-fetch
 │   └── sites/           # Site-specific configs
 │       ├── base.py      # SiteConfig ABC
 │       ├── note.py      # note.com config
+│       ├── qiita.py     # qiita.com config
 │       └── __init__.py  # SiteRegistry
 ├── hooks/
 │   ├── playwright-http-server.py  # Proxy server for sandbox bypass
-│   └── note-fetch-hook.py        # WebFetch hook for Claude Code
+│   └── site-fetch-hook.py        # WebFetch hook for Claude Code
 ├── tests/
 └── pyproject.toml
 ```

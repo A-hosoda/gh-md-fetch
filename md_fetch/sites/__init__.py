@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 
 from md_fetch.sites.base import SiteConfig
 
-__all__ = ["SiteConfig", "SiteRegistry", "UnsupportedSiteError"]
+__all__ = ["SiteConfig", "SiteRegistry", "UnsupportedSiteError", "create_default_registry"]
 
 
 class UnsupportedSiteError(Exception):
@@ -52,3 +52,12 @@ class SiteRegistry:
         raise UnsupportedSiteError(
             f"No site configuration found for host {host!r}"
         )
+
+
+def create_default_registry() -> SiteRegistry:
+    """Create a SiteRegistry pre-loaded with all built-in site configurations."""
+    from md_fetch.sites.note import NoteSiteConfig
+
+    registry = SiteRegistry()
+    registry.register(NoteSiteConfig())
+    return registry

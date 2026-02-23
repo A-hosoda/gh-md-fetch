@@ -1,0 +1,54 @@
+"""Site configuration registry for md_fetch."""
+
+from __future__ import annotations
+
+from fnmatch import fnmatch
+from urllib.parse import urlparse
+
+from md_fetch.sites.base import SiteConfig
+
+__all__ = ["SiteConfig", "SiteRegistry", "UnsupportedSiteError"]
+
+
+class UnsupportedSiteError(Exception):
+    """Raised when no registered SiteConfig matches the given URL."""
+
+
+class SiteRegistry:
+    """Registry that maps URLs to their SiteConfig by hostname pattern."""
+
+    def __init__(self) -> None:
+        self._configs: list[SiteConfig] = []
+
+    def register(self, config: SiteConfig) -> None:
+        """Register a site configuration."""
+        self._configs.append(config)
+
+    def find(self, url: str) -> SiteConfig:
+        """Find the matching SiteConfig for a URL.
+
+        Args:
+            url: The URL to look up.
+
+        Returns:
+            The first matching SiteConfig.
+
+        Raises:
+            ValueError: If *url* is empty or has no extractable hostname.
+            UnsupportedSiteError: If no registered config matches.
+        """
+        if not url:
+            raise ValueError("url must not be empty")
+
+        host = urlparse(url).hostname
+        if not host:
+            raise ValueError(f"Could not extract hostname from url: {url!r}")
+
+        for config in self._configs:
+            for pattern in config.host_patterns:
+                if fnmatch(host, pattern):
+                    return config
+
+        raise UnsupportedSiteError(
+            f"No site configuration found for host {host!r}"
+        )

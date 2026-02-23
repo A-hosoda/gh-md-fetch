@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse hook: fetch note.com / qiita.com articles via playwright proxy.
+"""PreToolUse hook: fetch note.com / qiita.com / zenn.dev articles via playwright proxy.
 
 Intercepts WebFetch for supported sites, fetches rendered HTML through
 playwright-http-server, converts to markdown via md_fetch pipeline,
@@ -19,10 +19,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 PROXY_URL = "http://127.0.0.1:19877"
-SUPPORTED_HOSTS = {"note.com", "note.mu", "qiita.com"}
+SUPPORTED_HOSTS = {"note.com", "note.mu", "qiita.com", "zenn.dev"}
 
 # Sites that need faster wait strategy (networkidle times out)
-LOAD_WAIT_HOSTS = {"qiita.com"}
+LOAD_WAIT_HOSTS = {"qiita.com", "zenn.dev"}
 
 
 def is_supported_url(url: str) -> bool:

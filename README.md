@@ -37,6 +37,7 @@ gh md-fetch https://note.com/user/n/xxxxxxxxxx -o ./output
 |------|-------------|
 | note | `note.com`, `*.note.com` |
 | Qiita | `qiita.com`, `*.qiita.com` |
+| Zenn | `zenn.dev` |
 
 ## Claude Code integration
 
@@ -77,7 +78,7 @@ verbose モード:
 
 #### 2. Configure Claude Code hook (optional)
 
-Claude Code が `WebFetch` で note.com / qiita.com URL にアクセスした際、自動的にプロキシ経由で取得するための hook。
+Claude Code が `WebFetch` で note.com / qiita.com / zenn.dev URL にアクセスした際、自動的にプロキシ経由で取得するための hook。
 記事は temp ファイルに保存され、`additionalContext` でファイルパスが Claude に通知される。
 
 `.claude/settings.local.json` に追加:
@@ -162,6 +163,7 @@ gh-md-fetch
 │       ├── base.py      # SiteConfig ABC
 │       ├── note.py      # note.com config
 │       ├── qiita.py     # qiita.com config
+│       ├── zenn.py      # zenn.dev config
 │       └── __init__.py  # SiteRegistry
 ├── hooks/
 │   ├── playwright-http-server.py  # Proxy server for sandbox bypass

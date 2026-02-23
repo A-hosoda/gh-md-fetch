@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#
+# gh-md-fetch: Fetch web articles and convert to Markdown
+# gh CLI extension entry point
+#
+
+set -euo pipefail
+
+# Resolve symlinks (gh extension install creates symlinks)
+_self="${BASH_SOURCE[0]}"
+while [[ -L "$_self" ]]; do
+    _dir="$(cd "$(dirname "$_self")" && pwd -P)"
+    _self="$(readlink "$_self")"
+    [[ "$_self" != /* ]] && _self="$_dir/$_self"
+done
+SCRIPT_DIR="$(cd "$(dirname "$_self")" && pwd -P)"
+unset _self _dir
+
+# Detect Python 3
+if command -v python3 &>/dev/null; then
+    PYTHON=python3
+elif command -v python &>/dev/null && python --version 2>&1 | grep -q "Python 3"; then
+    PYTHON=python
+else
+    echo "Error: Python 3 is required but not found." >&2
+    exit 1
+fi
+
+# Auto-setup venv if missing
+if [[ ! -d "$SCRIPT_DIR/.venv" ]]; then
+    echo "Setting up virtual environment..." >&2
+
+    cleanup_failed_venv() {
+        echo "Setup failed. Removing incomplete .venv..." >&2
+        rm -rf "$SCRIPT_DIR/.venv"
+    }
+    trap cleanup_failed_venv ERR
+
+    "$PYTHON" -m venv "$SCRIPT_DIR/.venv"
+    "$SCRIPT_DIR/.venv/bin/pip" install --quiet -e "$SCRIPT_DIR"
+    "$SCRIPT_DIR/.venv/bin/python" -m playwright install chromium
+
+    trap - ERR
+    echo "Setup complete." >&2
+fi
+
+exec "$SCRIPT_DIR/.venv/bin/python" -m md_fetch.cli "$@"

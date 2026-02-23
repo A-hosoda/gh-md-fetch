@@ -22,7 +22,7 @@ class NoteSiteConfig(SiteConfig):
 
     @property
     def title_selector(self) -> str:
-        return ".o-noteContentHeader__title, h1"
+        return ".o-noteContentHeader__title"
 
     @property
     def remove_selectors(self) -> list[str]:

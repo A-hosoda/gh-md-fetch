@@ -52,19 +52,24 @@ def log_verbose(msg: str):
         print(f"[{ts}] {msg}", file=sys.stderr)
 
 
-def fetch_with_playwright(url: str, timeout_ms: int) -> dict:
+_VALID_WAIT_UNTIL = {"commit", "domcontentloaded", "load", "networkidle"}
+
+
+def fetch_with_playwright(url: str, timeout_ms: int, wait_until: str = "networkidle") -> dict:
     """Fetch a URL with Playwright and return result dict.
 
     Returns:
         {"html": str, "error": None} on success, or
         {"html": None, "error": {"type": str, "message": str}} on failure.
     """
+    if wait_until not in _VALID_WAIT_UNTIL:
+        wait_until = "networkidle"
     try:
         with sync_playwright() as pw:
             browser = pw.chromium.launch(headless=True)
             try:
                 page = browser.new_page()
-                page.goto(url, wait_until="networkidle", timeout=timeout_ms)
+                page.goto(url, wait_until=wait_until, timeout=timeout_ms)
                 html = page.content()
                 return {"html": html, "error": None}
             finally:
@@ -102,9 +107,10 @@ class PlaywrightRelayHandler(http.server.BaseHTTPRequestHandler):
                 })
                 return
 
-            log_verbose(f">>> fetch {url} (timeout={timeout_ms}ms)")
+            wait_until = request.get("wait_until", "networkidle")
+            log_verbose(f">>> fetch {url} (timeout={timeout_ms}ms, wait={wait_until})")
 
-            result = fetch_with_playwright(url, timeout_ms)
+            result = fetch_with_playwright(url, timeout_ms, wait_until)
 
             if result["error"]:
                 log_verbose(f"<<< error: {result['error']}")

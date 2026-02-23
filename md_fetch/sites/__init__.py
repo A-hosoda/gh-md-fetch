@@ -57,7 +57,9 @@ class SiteRegistry:
 def create_default_registry() -> SiteRegistry:
     """Create a SiteRegistry pre-loaded with all built-in site configurations."""
     from md_fetch.sites.note import NoteSiteConfig
+    from md_fetch.sites.qiita import QiitaSiteConfig
 
     registry = SiteRegistry()
     registry.register(NoteSiteConfig())
+    registry.register(QiitaSiteConfig())
     return registry
